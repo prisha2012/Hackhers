@@ -4,17 +4,19 @@ import {
   Award, FileText, Eye, Download, CheckCircle 
 } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { useData } from '../../contexts/DataContext';
+// import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 const JudgeDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const { events, submissions } = useData();
+  // Mock data for now
+  const events: any[] = [];
+  const submissions: any[] = [];
   const { user } = useAuth();
 
   // Filter events where this user is assigned as judge
-  const judgeEvents = events.filter(event => 
-    event.judges?.some(judge => judge.name === user?.name)
+  const judgeEvents = events.filter((event: any) => 
+    event.judges?.some((judge: any) => judge.name === user?.name)
   );
   
   // Filter submissions for events this judge is assigned to
@@ -55,6 +57,17 @@ const JudgeDashboard: React.FC = () => {
       category: judgeEvents.find(e => e.id === sub.eventId)?.category || "General",
       reviewDate: new Date(sub.createdAt).toLocaleDateString()
     }))
+  };
+
+  const handleViewProject = (projectId: string) => {
+    console.log('Viewing project:', projectId);
+    // Navigate to project details or open modal
+  };
+
+  const handleSubmitReview = (projectId: string) => {
+    console.log('Submitting review for project:', projectId);
+    // Submit review logic
+    alert('Review submitted successfully!');
   };
 
   const sidebarItems = [
@@ -147,7 +160,10 @@ const JudgeDashboard: React.FC = () => {
                 <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
                   Deadline: {assignment.deadline}
                 </p>
-                <button className="btn-primary px-4 py-2 text-sm">
+                <button 
+                  className="btn-primary px-4 py-2 text-sm"
+                  onClick={() => setActiveTab('reviews')}
+                >
                   Start Reviewing
                 </button>
               </div>
@@ -176,7 +192,10 @@ const JudgeDashboard: React.FC = () => {
                   Submitted: {project.submittedDate}
                 </p>
                 <div className="flex gap-2">
-                  <button className="btn-primary px-3 py-2 text-sm flex items-center space-x-1">
+                  <button 
+                    className="btn-primary px-3 py-2 text-sm flex items-center space-x-1"
+                    onClick={() => setActiveTab('reviews')}
+                  >
                     <Eye className="h-4 w-4" />
                     <span>Review</span>
                   </button>
@@ -296,11 +315,17 @@ const JudgeDashboard: React.FC = () => {
               </div>
 
               <div className="flex gap-2">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                <button 
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  onClick={() => handleViewProject(project.id)}
+                >
                   <Eye className="h-4 w-4" />
                   <span>View Project</span>
                 </button>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                <button 
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  onClick={() => handleSubmitReview(project.id)}
+                >
                   Submit Review
                 </button>
                 <button className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors border border-white/20 flex items-center space-x-2">

@@ -1,35 +1,39 @@
 import React, { useState } from 'react';
 import { 
-  Plus, Calendar, Users, BarChart3, Settings, Bell,
+  Plus, Calendar, Users, BarChart3, Settings,
   Eye, Edit, Trash2, TrendingUp, Trophy, MessageSquare
 } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
-import { useData } from '../../contexts/DataContext';
+// import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 const OrganizerDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
-  const { events, deleteEvent } = useData();
+  // Mock data for now
+  const events: any[] = [];
+  const deleteEvent = (id: string) => {
+    console.log('Delete event:', id);
+  };
   const { user } = useAuth();
 
   // Filter events created by this organizer
-  const organizerEvents = events.filter(event => event.organizerId === user?.id);
-  const upcomingEvents = organizerEvents.filter(event => event.status === 'upcoming');
-  const ongoingEvents = organizerEvents.filter(event => event.status === 'ongoing');
-  const completedEvents = organizerEvents.filter(event => event.status === 'completed');
+  const organizerEvents = events.filter((event: any) => event.organizerId === user?.id);
+  const upcomingEvents = organizerEvents.filter((event: any) => event.status === 'upcoming');
+  const ongoingEvents = organizerEvents.filter((event: any) => event.status === 'ongoing');
+  const completedEvents = organizerEvents.filter((event: any) => event.status === 'completed');
 
   const organizerData = {
     name: user?.name || "Organizer",
     company: "Event Organization",
     eventsCreated: organizerEvents.length,
-    totalParticipants: organizerEvents.reduce((sum, event) => sum + event.currentRegistrations, 0),
-    totalPrizeMoney: organizerEvents.reduce((sum, event) => {
+    totalParticipants: organizerEvents.reduce((sum: any, event: any) => sum + event.currentRegistrations, 0),
+    totalPrizeMoney: organizerEvents.reduce((sum: any, event: any) => {
       const prize = event.totalPrizePool?.replace(/[^0-9]/g, '') || '0';
       return sum + parseInt(prize);
     }, 0),
-    upcomingEvents: [...upcomingEvents, ...ongoingEvents].map(event => ({
+    upcomingEvents: [...upcomingEvents, ...ongoingEvents].map((event: any) => ({
       id: event.id,
       name: event.title,
       date: new Date(event.startDate).toLocaleDateString(),
@@ -39,7 +43,7 @@ const OrganizerDashboard: React.FC = () => {
       registrationType: event.registrationType,
       teamSize: event.teamSize
     })),
-    pastEvents: completedEvents.map(event => ({
+    pastEvents: completedEvents.map((event: any) => ({
       id: event.id,
       name: event.title,
       date: new Date(event.startDate).toLocaleDateString(),
@@ -59,10 +63,30 @@ const OrganizerDashboard: React.FC = () => {
     }
   };
 
-  const handleDeleteEvent = (eventId: number) => {
+  const handleDeleteEvent = (eventId: string) => {
     if (window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
       deleteEvent(eventId);
     }
+  };
+
+  const handleSendAnnouncement = () => {
+    // Navigate to announcements page or show modal
+    setActiveTab('announcements');
+    console.log('Send announcement clicked');
+  };
+
+  const handleViewAnalytics = () => {
+    // Navigate to analytics page
+    setActiveTab('analytics');
+    console.log('View analytics clicked');
+  };
+
+  const handleManageEvent = (eventId: string) => {
+    navigate(`/events/${eventId}/manage`);
+  };
+
+  const handleViewEvent = (eventId: string) => {
+    navigate(`/events/${eventId}`);
   };
 
   const sidebarItems = [
@@ -124,11 +148,17 @@ const OrganizerDashboard: React.FC = () => {
             <Plus className="h-5 w-5" />
             <span>Create New Event</span>
           </button>
-          <button className="btn-ghost p-4 flex items-center justify-center space-x-2">
+          <button 
+            className="btn-ghost p-4 flex items-center justify-center space-x-2"
+            onClick={() => handleSendAnnouncement()}
+          >
             <MessageSquare className="h-5 w-5" />
             <span>Send Announcement</span>
           </button>
-          <button className="btn-ghost p-4 flex items-center justify-center space-x-2">
+          <button 
+            className="btn-ghost p-4 flex items-center justify-center space-x-2"
+            onClick={() => handleViewAnalytics()}
+          >
             <BarChart3 className="h-5 w-5" />
             <span>View Analytics</span>
           </button>
@@ -241,15 +271,18 @@ const OrganizerDashboard: React.FC = () => {
 
               <div className="flex gap-2">
                 <button 
-                  onClick={() => navigate(`/events/${event.id}`)}
+                  onClick={() => handleViewEvent(event.id)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
                 >
                   <Eye className="h-4 w-4" />
                   <span>View</span>
                 </button>
-                <button className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors border border-white/20 flex items-center space-x-2">
+                <button 
+                  onClick={() => handleManageEvent(event.id)}
+                  className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors border border-white/20 flex items-center space-x-2"
+                >
                   <Edit className="h-4 w-4" />
-                  <span>Edit</span>
+                  <span>Manage</span>
                 </button>
                 <button 
                   onClick={() => handleDeleteEvent(event.id)}
@@ -282,7 +315,7 @@ const OrganizerDashboard: React.FC = () => {
               <div className="mb-4">
                 <p className="text-white font-medium mb-2">Winners:</p>
                 <div className="flex flex-wrap gap-2">
-                  {event.winners.map((winner, index) => (
+                  {event.winners.map((winner: any, index: number) => (
                     <span key={index} className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded text-sm border border-yellow-500/30">
                       #{index + 1} {winner}
                     </span>
