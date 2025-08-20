@@ -29,8 +29,8 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock user database
-const mockUsers: User[] = [
+// Mock user database - will persist new signups
+let mockUsers: User[] = [
   {
     id: 'participant-1',
     name: 'John Doe',
@@ -56,8 +56,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load user from localStorage on mount
+  // Load user and user database from localStorage on mount
   useEffect(() => {
+    // Load saved users database
+    const savedUsers = localStorage.getItem('mockUsers');
+    if (savedUsers) {
+      try {
+        const parsedUsers = JSON.parse(savedUsers);
+        mockUsers.splice(0, mockUsers.length, ...parsedUsers);
+      } catch (error) {
+        console.warn('Failed to parse saved users:', error);
+      }
+    }
+    
+    // Load current user
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
@@ -127,8 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Mock authentication with proper validation
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Find user in mock database
-    const foundUser = mockUsers.find(u => u.email === email && u.role === role);
+    // Find user in mock database (case insensitive)
+    const foundUser = mockUsers.find(u => u.email === email.toLowerCase() && u.role === role);
     
     if (foundUser) {
       setUser(foundUser);
@@ -197,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise(resolve => setTimeout(resolve, 800));
     
     // Check if user already exists
-    const existingUser = mockUsers.find(u => u.email === email);
+    const existingUser = mockUsers.find(u => u.email === email.toLowerCase());
     if (existingUser) {
       setIsLoading(false);
       return false;
@@ -212,7 +224,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       registeredEvents: role === 'participant' ? [1, 2, 3, 4, 5, 6, 7] : []
     };
     
+    // Add to mock database and persist
     mockUsers.push(newUser);
+    localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
+    
+    // Set as current user
     setUser(newUser);
     localStorage.setItem('user', JSON.stringify(newUser));
     setIsLoading(false);

@@ -48,9 +48,14 @@ const ParticipantDashboard: React.FC = () => {
   };
 
   const handleSubmitProject = async (eventId: number) => {
+    if (!user?.id) {
+      alert('Please log in to submit a project.');
+      return;
+    }
+
     // Check if user already submitted for this event
     const existingSubmission = submissions.find(sub => 
-      sub.eventId === eventId && sub.userId === user?.id
+      sub.eventId === eventId && sub.userId === user.id
     );
     
     if (existingSubmission) {
@@ -59,25 +64,35 @@ const ParticipantDashboard: React.FC = () => {
     }
     
     const projectName = prompt('Enter project name:');
-    const description = prompt('Enter project description:');
-    const repositoryUrl = prompt('Enter repository URL (optional):');
-    
-    if (!projectName || !description) {
-      alert('Project name and description are required!');
+    if (!projectName || projectName.trim().length === 0) {
+      alert('Project name is required!');
       return;
     }
 
+    const description = prompt('Enter project description:');
+    if (!description || description.trim().length === 0) {
+      alert('Project description is required!');
+      return;
+    }
+
+    const repositoryUrl = prompt('Enter repository URL (optional):');
+    const liveUrl = prompt('Enter live demo URL (optional):');
+    
     try {
-      await createSubmission({
+      const newSubmission = await createSubmission({
         eventId,
-        userId: user?.id || '',
-        projectName,
-        description,
-        repositoryUrl: repositoryUrl || undefined,
+        userId: user.id,
+        projectName: projectName.trim(),
+        description: description.trim(),
+        repositoryUrl: repositoryUrl?.trim() || undefined,
+        liveUrl: liveUrl?.trim() || undefined,
         status: 'submitted'
       });
+      
+      console.log('Submission created:', newSubmission);
       alert('Project submitted successfully!');
-      // Refresh to show updated data
+      
+      // Force re-render by updating state
       window.location.reload();
     } catch (error) {
       console.error('Failed to submit project:', error);
@@ -316,20 +331,32 @@ const ParticipantDashboard: React.FC = () => {
         <button
           className="btn-primary px-4 py-2"
           onClick={() => {
+            if (!user?.id) {
+              alert('Please log in to submit a project.');
+              return;
+            }
+
             const availableEvents = registeredEvents.filter(event => 
-              !submissions.some(sub => sub.eventId === event.id && sub.userId === user?.id)
+              !submissions.some(sub => sub.eventId === event.id && sub.userId === user.id)
             );
             
             if (availableEvents.length === 0) {
-              alert('You have already submitted projects for all your registered events!');
+              alert('You have already submitted projects for all available events!');
               return;
             }
             
             const eventOptions = availableEvents.map(event => `${event.id}: ${event.title}`).join('\n');
             const selectedEventId = prompt(`Select an event to submit to:\n${eventOptions}\n\nEnter event ID:`);
             
-            if (selectedEventId) {
-              handleSubmitProject(parseInt(selectedEventId));
+            if (selectedEventId && !isNaN(parseInt(selectedEventId))) {
+              const eventId = parseInt(selectedEventId);
+              const selectedEvent = availableEvents.find(e => e.id === eventId);
+              
+              if (selectedEvent) {
+                handleSubmitProject(eventId);
+              } else {
+                alert('Invalid event ID selected!');
+              }
             }
           }}
         >
