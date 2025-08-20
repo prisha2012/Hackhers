@@ -56,29 +56,53 @@ const JudgeDashboard: React.FC = () => {
   };
 
   const handleViewProject = (projectId: string) => {
-    console.log('Viewing project:', projectId);
-    // Navigate to project details or open modal
+    const submission = submissions.find(sub => sub.id === parseInt(projectId));
+    if (submission) {
+      const projectDetails = `
+Project: ${submission.projectName}
+Description: ${submission.description}
+Repository: ${submission.repositoryUrl || 'Not provided'}
+Live URL: ${submission.liveUrl || 'Not provided'}
+Submitted: ${new Date(submission.submittedAt).toLocaleDateString()}
+      `;
+      alert(projectDetails);
+    }
+  };
+
+  const [reviewScores, setReviewScores] = useState<{[key: string]: {innovation: number, technical: number, presentation: number, feedback: string}}>({});
+  const { submitJudgeScore } = useData();
+
+  const handleScoreChange = (projectId: string, field: string, value: string) => {
+    setReviewScores(prev => ({
+      ...prev,
+      [projectId]: {
+        ...prev[projectId],
+        [field]: field === 'feedback' ? value : parseInt(value) || 0
+      }
+    }));
   };
 
   const handleSubmitReview = async (projectId: string) => {
-    const innovationScore = prompt('Innovation Score (1-10):');
-    const technicalScore = prompt('Technical Score (1-10):');
-    const presentationScore = prompt('Presentation Score (1-10):');
-    const feedback = prompt('Feedback for the team:');
+    const scores = reviewScores[projectId];
     
-    if (!innovationScore || !technicalScore || !presentationScore) {
-      alert('Please provide all scores!');
+    if (!scores || !scores.innovation || !scores.technical || !scores.presentation) {
+      alert('Please provide all scores (Innovation, Technical, Presentation)!');
       return;
     }
     
     const totalScore = Math.round(
-      (parseInt(innovationScore) + parseInt(technicalScore) + parseInt(presentationScore)) / 3
+      (scores.innovation + scores.technical + scores.presentation) / 3
     );
     
     try {
-      const { submitJudgeScore } = useData();
-      await submitJudgeScore(parseInt(projectId), totalScore, feedback || 'No feedback provided');
+      await submitJudgeScore(parseInt(projectId), totalScore, scores.feedback || 'No feedback provided');
       alert(`Review submitted successfully! Total Score: ${totalScore}/10`);
+      // Clear the form
+      setReviewScores(prev => {
+        const newScores = { ...prev };
+        delete newScores[projectId];
+        return newScores;
+      });
       // Refresh the page to show updated data
       window.location.reload();
     } catch (error) {
@@ -299,6 +323,8 @@ const JudgeDashboard: React.FC = () => {
                       max="10" 
                       className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
                       placeholder="8"
+                      value={reviewScores[project.id]?.innovation || ''}
+                      onChange={(e) => handleScoreChange(project.id.toString(), 'innovation', e.target.value)}
                     />
                   </div>
                   <div>
@@ -309,6 +335,8 @@ const JudgeDashboard: React.FC = () => {
                       max="10" 
                       className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
                       placeholder="7"
+                      value={reviewScores[project.id]?.technical || ''}
+                      onChange={(e) => handleScoreChange(project.id.toString(), 'technical', e.target.value)}
                     />
                   </div>
                   <div>
@@ -327,6 +355,8 @@ const JudgeDashboard: React.FC = () => {
                   <textarea 
                     className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white h-20"
                     placeholder="Provide detailed feedback for the team..."
+                    value={reviewScores[project.id]?.feedback || ''}
+                    onChange={(e) => handleScoreChange(project.id.toString(), 'feedback', e.target.value)}
                   />
                 </div>
               </div>

@@ -141,7 +141,7 @@ const ParticipantDashboard: React.FC = () => {
                   Active
                 </span>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{participantData.currentTeam.event}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">Active Team</p>
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Team Members:</p>
                 {participantData.currentTeam.members.map((member, index) => (
@@ -319,20 +319,24 @@ const ParticipantDashboard: React.FC = () => {
         <button
           className="btn-primary px-4 py-2"
           onClick={() => {
-            if (!user) return;
-            createSubmission({
-              eventId: 1,
-              userId: user?.id || '',
-              projectName: 'My Awesome Project',
-              description: 'Quick submission created from dashboard',
-              repositoryUrl: 'https://github.com/example/repo',
-              liveUrl: 'https://example.com/demo',
-              status: 'submitted'
-            });
-            alert('Submission created');
+            const availableEvents = registeredEvents.filter(event => 
+              !submissions.some(sub => sub.eventId === event.id && sub.userId === user?.id)
+            );
+            
+            if (availableEvents.length === 0) {
+              alert('You have already submitted projects for all your registered events!');
+              return;
+            }
+            
+            const eventOptions = availableEvents.map(event => `${event.id}: ${event.title}`).join('\n');
+            const selectedEventId = prompt(`Select an event to submit to:\n${eventOptions}\n\nEnter event ID:`);
+            
+            if (selectedEventId) {
+              handleSubmitProject(parseInt(selectedEventId));
+            }
           }}
         >
-          New Submission
+          Submit Project
         </button>
       </div>
 
