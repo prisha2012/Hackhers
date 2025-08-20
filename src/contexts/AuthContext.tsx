@@ -36,7 +36,7 @@ const mockUsers: User[] = [
     name: 'John Doe',
     email: 'participant@example.com',
     role: 'participant',
-    registeredEvents: [100001, 100002]
+    registeredEvents: [1, 2]
   },
   {
     id: 'organizer-1',

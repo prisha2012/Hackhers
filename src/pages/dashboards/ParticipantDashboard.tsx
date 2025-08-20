@@ -17,7 +17,8 @@ const ParticipantDashboard: React.FC = () => {
   // Filter events where user is registered
   const registeredEvents = events.filter(event => 
     event.participants.includes(user?.id || '') || 
-    event.teams?.some(team => team.members.includes(user?.id || ''))
+    event.teams?.some(team => team.members.includes(user?.id || '')) ||
+    user?.registeredEvents?.includes(event.id)
   );
 
   // Filter user's submissions
