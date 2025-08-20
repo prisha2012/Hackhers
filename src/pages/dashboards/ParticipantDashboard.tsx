@@ -21,7 +21,7 @@ const ParticipantDashboard: React.FC = () => {
   );
 
   // Filter user's submissions
-  const userSubmissions = submissions.filter(sub => sub.submitterId === user?.id);
+  const userSubmissions = submissions.filter(sub => sub.userId === user?.id);
 
   const participantData = {
     name: user?.name || "Participant",
@@ -38,16 +38,42 @@ const ParticipantDashboard: React.FC = () => {
     submissions: userSubmissions.map(sub => ({
       id: sub.id,
       eventName: registeredEvents.find(e => e.id === sub.eventId)?.title || "Unknown Event",
-      projectName: sub.title,
+      projectName: sub.projectName,
       status: sub.status,
       score: sub.score || 0,
-      submittedDate: new Date(sub.createdAt).toLocaleDateString()
+      submittedDate: new Date(sub.submittedAt).toLocaleDateString()
     })),
     achievements: [
       { name: "First Hackathon", icon: "🎯", date: "2024" },
       { name: "Team Player", icon: "👥", date: "2024" },
       { name: "Innovation Award", icon: "🏆", date: "2024" }
     ]
+  };
+
+  const handleSubmitProject = async (eventId: number) => {
+    const projectName = prompt('Enter project name:');
+    const description = prompt('Enter project description:');
+    const repositoryUrl = prompt('Enter repository URL (optional):');
+    
+    if (!projectName || !description) {
+      alert('Project name and description are required!');
+      return;
+    }
+
+    try {
+      await createSubmission({
+        eventId,
+        userId: user?.id || '',
+        projectName,
+        description,
+        repositoryUrl: repositoryUrl || undefined,
+        status: 'submitted'
+      });
+      alert('Project submitted successfully!');
+    } catch (error) {
+      console.error('Failed to submit project:', error);
+      alert('Failed to submit project. Please try again.');
+    }
   };
 
   const sidebarItems = [
@@ -182,9 +208,8 @@ const ParticipantDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-white">{event.name}</h3>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                event.status === 'registered' 
-                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                  : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                event.status === 'upcoming' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                  'bg-gray-500/20 text-gray-400 border border-gray-500/30'
               }`}>
                 {event.status}
               </span>
@@ -204,7 +229,10 @@ const ParticipantDashboard: React.FC = () => {
               >
                 View Details
               </button>
-              <button className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors border border-white/20">
+              <button 
+                className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors border border-white/20"
+                onClick={() => handleSubmitProject(event.id)}
+              >
                 Submit Project
               </button>
             </div>
@@ -239,7 +267,7 @@ const ParticipantDashboard: React.FC = () => {
 
           <div className="mb-6">
             <p className="text-gray-400 mb-2">Event:</p>
-            <p className="text-white">{participantData.currentTeam.event}</p>
+            <p className="text-white">AI Innovation Challenge 2025</p>
           </div>
 
           <div>
@@ -282,11 +310,12 @@ const ParticipantDashboard: React.FC = () => {
             if (!user) return;
             createSubmission({
               eventId: 1,
-              submitterId: user.id!,
-              title: 'My Awesome Project',
-              repoUrl: 'https://github.com/example/repo',
-              demoUrl: 'https://example.com/demo',
+              userId: user?.id || '',
+              projectName: 'My Awesome Project',
               description: 'Quick submission created from dashboard',
+              repositoryUrl: 'https://github.com/example/repo',
+              liveUrl: 'https://example.com/demo',
+              status: 'submitted'
             });
             alert('Submission created');
           }}
@@ -299,12 +328,12 @@ const ParticipantDashboard: React.FC = () => {
         {participantData.submissions.map((submission) => (
           <div key={submission.id} className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white">{submission.project}</h3>
+              <h4 className="text-lg font-semibold text-white">{submission.projectName}</h4>
               <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/30">
                 {submission.status}
               </span>
             </div>
-            <p className="text-gray-400 mb-4">Event: {submission.event}</p>
+            <p className="text-gray-400">Event: {submission.eventName}</p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div className="text-center">
@@ -312,7 +341,7 @@ const ParticipantDashboard: React.FC = () => {
                 <p className="text-gray-400 text-sm">Score</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-yellow-400">#{submission.rank}</p>
+                <div className="text-2xl font-bold text-yellow-400">#{submission.score > 90 ? '1st' : submission.score > 80 ? '2nd' : '3rd'}</div>
                 <p className="text-gray-400 text-sm">Rank</p>
               </div>
               <div className="text-center">

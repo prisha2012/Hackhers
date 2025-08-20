@@ -4,14 +4,12 @@ import {
   Award, FileText, Eye, Download, CheckCircle 
 } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-// import { useData } from '../../contexts/DataContext';
+import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 const JudgeDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  // Mock data for now
-  const events: any[] = [];
-  const submissions: any[] = [];
+  const { events, submissions } = useData();
   const { user } = useAuth();
 
   // Filter events where this user is assigned as judge
@@ -43,19 +41,19 @@ const JudgeDashboard: React.FC = () => {
     })),
     pendingReviews: pendingReviews.map(sub => ({
       id: sub.id,
-      projectName: sub.title,
-      teamName: sub.teamName || sub.submitterName || "Individual",
-      submittedDate: new Date(sub.createdAt).toLocaleDateString(),
-      category: judgeEvents.find(e => e.id === sub.eventId)?.category || "General",
+      projectName: sub.projectName,
+      teamName: "Individual",
+      submittedDate: new Date(sub.submittedAt).toLocaleDateString(),
+      category: "General",
       priority: "medium"
     })),
     completedReviews: completedReviews.map(sub => ({
       id: sub.id,
-      projectName: sub.title,
-      teamName: sub.teamName || sub.submitterName || "Individual",
+      projectName: sub.projectName,
+      teamName: "Individual",
       score: sub.judgeScore || 0,
-      category: judgeEvents.find(e => e.id === sub.eventId)?.category || "General",
-      reviewDate: new Date(sub.createdAt).toLocaleDateString()
+      category: "General",
+      reviewDate: new Date(sub.submittedAt).toLocaleDateString()
     }))
   };
 
@@ -317,14 +315,14 @@ const JudgeDashboard: React.FC = () => {
               <div className="flex gap-2">
                 <button 
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                  onClick={() => handleViewProject(project.id)}
+                  onClick={() => handleViewProject(project.id.toString())}
                 >
                   <Eye className="h-4 w-4" />
                   <span>View Project</span>
                 </button>
                 <button 
                   className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                  onClick={() => handleSubmitReview(project.id)}
+                  onClick={() => handleSubmitReview(project.id.toString())}
                 >
                   Submit Review
                 </button>

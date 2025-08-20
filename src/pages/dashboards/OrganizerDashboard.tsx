@@ -5,17 +5,13 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
-// import { useData } from '../../contexts/DataContext';
+import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 const OrganizerDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
-  // Mock data for now
-  const events: any[] = [];
-  const deleteEvent = (id: string) => {
-    console.log('Delete event:', id);
-  };
+  const { events, deleteEvent } = useData();
   const { user } = useAuth();
 
   // Filter events created by this organizer
@@ -65,7 +61,7 @@ const OrganizerDashboard: React.FC = () => {
 
   const handleDeleteEvent = (eventId: string) => {
     if (window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
-      deleteEvent(eventId);
+      deleteEvent(parseInt(eventId));
     }
   };
 
