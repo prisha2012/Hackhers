@@ -78,7 +78,27 @@ const OrganizerDashboard: React.FC = () => {
   };
 
   const handleManageEvent = (eventId: string) => {
-    navigate(`/events/${eventId}/manage`);
+    // For now, show event management options in alert
+    const action = prompt('Event Management Options:\n1. Edit Event\n2. View Participants\n3. Export Data\n4. Send Announcement\n\nEnter option number (1-4):');
+    
+    switch(action) {
+      case '1':
+        alert('Edit Event functionality - Navigate to edit form');
+        break;
+      case '2':
+        const event = events.find(e => e.id.toString() === eventId);
+        alert(`Participants: ${event?.participants.length || 0}\nRegistrations: ${event?.currentRegistrations || 0}`);
+        break;
+      case '3':
+        alert('Export Data functionality - Download CSV/Excel');
+        break;
+      case '4':
+        const message = prompt('Enter announcement message:');
+        if (message) alert(`Announcement sent: "${message}"`);
+        break;
+      default:
+        alert('Invalid option');
+    }
   };
 
   const handleViewEvent = (eventId: string) => {

@@ -51,6 +51,16 @@ const ParticipantDashboard: React.FC = () => {
   };
 
   const handleSubmitProject = async (eventId: number) => {
+    // Check if user already submitted for this event
+    const existingSubmission = submissions.find(sub => 
+      sub.eventId === eventId && sub.userId === user?.id
+    );
+    
+    if (existingSubmission) {
+      alert('You have already submitted a project for this event!');
+      return;
+    }
+    
     const projectName = prompt('Enter project name:');
     const description = prompt('Enter project description:');
     const repositoryUrl = prompt('Enter repository URL (optional):');
@@ -70,6 +80,8 @@ const ParticipantDashboard: React.FC = () => {
         status: 'submitted'
       });
       alert('Project submitted successfully!');
+      // Refresh to show updated data
+      window.location.reload();
     } catch (error) {
       console.error('Failed to submit project:', error);
       alert('Failed to submit project. Please try again.');

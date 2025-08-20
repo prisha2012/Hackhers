@@ -13,6 +13,7 @@ import ParticipantDashboard from './pages/dashboards/ParticipantDashboard';
 import OrganizerDashboard from './pages/dashboards/OrganizerDashboard';
 import JudgeDashboard from './pages/dashboards/JudgeDashboard';
 import CreateEvent from './pages/CreateEvent';
+import WinnerAnnouncement from './pages/WinnerAnnouncement';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
@@ -61,10 +62,11 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            </Routes>
-          </div>
-          </Router>
-        </DataProvider>
+            <Route path="/winners" element={<WinnerAnnouncement />} />
+          </Routes>
+              </div>
+            </Router>
+          </DataProvider>
         </ToastProvider>
       </AuthProvider>
     </ThemeProvider>

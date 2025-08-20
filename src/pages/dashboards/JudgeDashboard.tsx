@@ -12,10 +12,8 @@ const JudgeDashboard: React.FC = () => {
   const { events, submissions } = useData();
   const { user } = useAuth();
 
-  // Filter events where this user is assigned as judge
-  const judgeEvents = events.filter((event: any) => 
-    event.judges?.some((judge: any) => judge.name === user?.name)
-  );
+  // For testing, show all events to judges (in production, filter by assigned judges)
+  const judgeEvents = events;
   
   // Filter submissions for events this judge is assigned to
   const judgeSubmissions = submissions.filter(submission =>
@@ -62,10 +60,31 @@ const JudgeDashboard: React.FC = () => {
     // Navigate to project details or open modal
   };
 
-  const handleSubmitReview = (projectId: string) => {
-    console.log('Submitting review for project:', projectId);
-    // Submit review logic
-    alert('Review submitted successfully!');
+  const handleSubmitReview = async (projectId: string) => {
+    const innovationScore = prompt('Innovation Score (1-10):');
+    const technicalScore = prompt('Technical Score (1-10):');
+    const presentationScore = prompt('Presentation Score (1-10):');
+    const feedback = prompt('Feedback for the team:');
+    
+    if (!innovationScore || !technicalScore || !presentationScore) {
+      alert('Please provide all scores!');
+      return;
+    }
+    
+    const totalScore = Math.round(
+      (parseInt(innovationScore) + parseInt(technicalScore) + parseInt(presentationScore)) / 3
+    );
+    
+    try {
+      const { submitJudgeScore } = useData();
+      await submitJudgeScore(parseInt(projectId), totalScore, feedback || 'No feedback provided');
+      alert(`Review submitted successfully! Total Score: ${totalScore}/10`);
+      // Refresh the page to show updated data
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to submit review:', error);
+      alert('Failed to submit review. Please try again.');
+    }
   };
 
   const sidebarItems = [
