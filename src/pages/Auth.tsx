@@ -16,12 +16,40 @@ const Auth: React.FC = () => {
   });
   const [error, setError] = useState('');
 
+  const validateForm = () => {
+    // Basic field validation
+    if (!formData.email || !formData.password || (isSignUp && !formData.name)) {
+      setError('Please fill in all fields');
+      return false;
+    }
+
+    // Name validation for signup
+    if (isSignUp && formData.name.trim().length < 2) {
+      setError('Name must be at least 2 characters long');
+      return false;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
+    // Password strength validation
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!formData.email || !formData.password || (isSignUp && !formData.name)) {
-      setError('Please fill in all fields');
+    if (!validateForm()) {
       return;
     }
 
@@ -30,13 +58,13 @@ const Auth: React.FC = () => {
       if (isSignUp) {
         success = await signup(formData.name, formData.email, formData.password, selectedRole);
         if (!success) {
-          setError('User already exists with this email');
+          setError('User already exists with this email or validation failed');
           return;
         }
       } else {
         success = await login(formData.email, formData.password, selectedRole);
         if (!success) {
-          setError('Invalid credentials or role mismatch');
+          setError('Invalid email, password, or role. Please check your credentials.');
           return;
         }
       }
@@ -101,7 +129,7 @@ const Auth: React.FC = () => {
               <div>Participant: participant@example.com</div>
               <div>Organizer: organizer@example.com</div>
               <div>Judge: judge@example.com</div>
-              <div className="mt-1 font-medium">Password: any password works</div>
+              <div className="mt-1 font-medium">Password: password123 (min 6 chars)</div>
             </div>
           </div>
 

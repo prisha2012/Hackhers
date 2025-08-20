@@ -36,7 +36,7 @@ const mockUsers: User[] = [
     name: 'John Doe',
     email: 'participant@example.com',
     role: 'participant',
-    registeredEvents: [1, 2]
+    registeredEvents: [1, 2, 3, 4, 5, 6, 7]
   },
   {
     id: 'organizer-1',
@@ -58,12 +58,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('auth_user');
+    const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
-        localStorage.removeItem('auth_user');
+        console.warn('Failed to parse saved user:', error);
+        localStorage.removeItem('user');
       }
     }
   }, []);
@@ -80,6 +81,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string, role: 'participant' | 'organizer' | 'judge'): Promise<boolean> => {
     setIsLoading(true);
     
+    // Basic validation
+    if (!email || !password) {
+      setIsLoading(false);
+      return false;
+    }
+    
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setIsLoading(false);
+      return false;
+    }
+    
+    // Password length validation
+    if (password.length < 6) {
+      setIsLoading(false);
+      return false;
+    }
+    
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       if (apiBaseUrl) {
@@ -94,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.ok) {
           const { token, user: apiUser } = await response.json();
           localStorage.setItem('auth_token', token);
+          localStorage.setItem('user', JSON.stringify(apiUser));
           setUser(apiUser);
           setIsLoading(false);
           return true;
@@ -103,14 +124,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Failed to login via API, using mock authentication:', error);
     }
     
-    // Fallback to mock authentication
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Mock authentication with proper validation
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     // Find user in mock database
     const foundUser = mockUsers.find(u => u.email === email && u.role === role);
     
     if (foundUser) {
       setUser(foundUser);
+      localStorage.setItem('user', JSON.stringify(foundUser));
       setIsLoading(false);
       return true;
     }
@@ -121,6 +143,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (name: string, email: string, password: string, role: 'participant' | 'organizer' | 'judge'): Promise<boolean> => {
     setIsLoading(true);
+    
+    // Basic validation
+    if (!name || !email || !password) {
+      setIsLoading(false);
+      return false;
+    }
+    
+    // Name validation
+    if (name.trim().length < 2) {
+      setIsLoading(false);
+      return false;
+    }
+    
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setIsLoading(false);
+      return false;
+    }
+    
+    // Password strength validation
+    if (password.length < 6) {
+      setIsLoading(false);
+      return false;
+    }
     
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -136,6 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.ok) {
           const { token, user: apiUser } = await response.json();
           localStorage.setItem('auth_token', token);
+          localStorage.setItem('user', JSON.stringify(apiUser));
           setUser(apiUser);
           setIsLoading(false);
           return true;
@@ -145,8 +193,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Failed to signup via API, using mock authentication:', error);
     }
     
-    // Fallback to mock authentication
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Mock authentication with proper validation
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     // Check if user already exists
     const existingUser = mockUsers.find(u => u.email === email);
@@ -155,17 +203,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
     
-    // Create new user
+    // Create new user with proper registration
     const newUser: User = {
       id: `${role}-${Date.now()}`,
-      name,
-      email,
+      name: name.trim(),
+      email: email.toLowerCase(),
       role,
-      registeredEvents: []
+      registeredEvents: role === 'participant' ? [1, 2, 3, 4, 5, 6, 7] : []
     };
     
     mockUsers.push(newUser);
     setUser(newUser);
+    localStorage.setItem('user', JSON.stringify(newUser));
     setIsLoading(false);
     return true;
   };
@@ -174,6 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
       
       // Update in mock database
       const userIndex = mockUsers.findIndex(u => u.id === user.id);
@@ -200,10 +250,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Failed to logout via API:', error);
     }
     
-    // Clear local state and storage
-    setUser(null);
-    localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('auth_user');
+    setUser(null);
     // Redirect to auth page after logout
     window.location.href = '/auth';
   };

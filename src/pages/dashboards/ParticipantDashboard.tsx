@@ -14,12 +14,8 @@ const ParticipantDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Filter events where user is registered
-  const registeredEvents = events.filter(event => 
-    event.participants.includes(user?.id || '') || 
-    event.teams?.some(team => team.members.includes(user?.id || '')) ||
-    user?.registeredEvents?.includes(event.id)
-  );
+  // Show all events for any logged-in user
+  const registeredEvents = events;
 
   // Filter user's submissions
   const userSubmissions = submissions.filter(sub => sub.userId === user?.id);
