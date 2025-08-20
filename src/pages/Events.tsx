@@ -216,7 +216,7 @@ const Events: React.FC = () => {
                 />
                 <div className="absolute top-4 left-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(event.status)}`}>
-                    {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                    {event.status ? event.status.charAt(0).toUpperCase() + event.status.slice(1) : 'Unknown'}
                   </span>
                 </div>
                 <div className="absolute top-4 right-4">
