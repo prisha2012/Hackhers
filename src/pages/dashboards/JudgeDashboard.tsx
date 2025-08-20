@@ -55,17 +55,12 @@ const JudgeDashboard: React.FC = () => {
     }))
   };
 
+  const [viewingProject, setViewingProject] = useState<any>(null);
+
   const handleViewProject = (projectId: string) => {
     const submission = submissions.find(sub => sub.id === parseInt(projectId));
     if (submission) {
-      const projectDetails = `
-Project: ${submission.projectName}
-Description: ${submission.description}
-Repository: ${submission.repositoryUrl || 'Not provided'}
-Live URL: ${submission.liveUrl || 'Not provided'}
-Submitted: ${new Date(submission.submittedAt).toLocaleDateString()}
-      `;
-      alert(projectDetails);
+      setViewingProject(submission);
     }
   };
 
@@ -428,14 +423,97 @@ Submitted: ${new Date(submission.submittedAt).toLocaleDateString()}
   };
 
   return (
-    <DashboardLayout
-      title="Judge Dashboard"
-      sidebarItems={sidebarItems}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-    >
-      {renderContent()}
-    </DashboardLayout>
+    <>
+      <DashboardLayout
+        title="Judge Dashboard"
+        sidebarItems={sidebarItems}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      >
+        {renderContent()}
+      </DashboardLayout>
+
+      {/* Project Details Modal */}
+      {viewingProject && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-2xl w-full mx-4 border border-white/20">
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-2xl font-bold text-white">Project Details</h2>
+              <button
+                onClick={() => setViewingProject(null)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">{viewingProject.projectName}</h3>
+                <p className="text-gray-300">{viewingProject.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Repository URL</p>
+                  {viewingProject.repositoryUrl ? (
+                    <a 
+                      href={viewingProject.repositoryUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline break-all"
+                    >
+                      {viewingProject.repositoryUrl}
+                    </a>
+                  ) : (
+                    <p className="text-gray-500">Not provided</p>
+                  )}
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Live Demo</p>
+                  {viewingProject.liveUrl ? (
+                    <a 
+                      href={viewingProject.liveUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline break-all"
+                    >
+                      {viewingProject.liveUrl}
+                    </a>
+                  ) : (
+                    <p className="text-gray-500">Not provided</p>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-400 mb-1">Submitted</p>
+                <p className="text-white">{new Date(viewingProject.submittedAt).toLocaleDateString()}</p>
+              </div>
+              
+              {viewingProject.judgeScore && (
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Current Score</p>
+                  <p className="text-white font-semibold">{viewingProject.judgeScore}/10</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setViewingProject(null)}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
