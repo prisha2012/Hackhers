@@ -4,7 +4,7 @@ import App from './App.tsx';
 import './index.css';
 import { ClerkProvider } from '@clerk/clerk-react';
 
-const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
+const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 // If no Clerk key is provided, render without ClerkProvider for development
 if (!clerkPublishableKey || clerkPublishableKey === 'pk_test_your_clerk_key_here') {
